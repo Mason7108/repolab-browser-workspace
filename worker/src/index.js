@@ -74,9 +74,11 @@ async function oauthCallback(request, env) {
   } catch (error) {
     message = { type: "repolab-oauth", error: error instanceof Error ? error.message : "GitHub sign-in failed." };
   }
-  const target = allowedOrigins(env)[0];
-  const payload = JSON.stringify(message).replace(/</g, "\\u003c");
-  return new Response(`<!doctype html><meta charset="utf-8"><title>GitHub connected</title><style>body{font:16px system-ui;background:#07110e;color:#edf4f0;display:grid;place-items:center;height:100vh;margin:0}</style><p>Finishing GitHub sign-in…</p><script>window.opener?.postMessage(${payload},${JSON.stringify(target)});window.close()</script>`, { headers: { "Content-Type": "text/html; charset=utf-8", "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline';", "Referrer-Policy": "no-referrer" } });
+  const target = env.FRONTEND_URL || allowedOrigins(env)[0];
+  const fragment = message.session
+    ? `oauth_session=${encodeURIComponent(message.session)}`
+    : `oauth_error=${encodeURIComponent(message.error)}`;
+  return new Response(null, { status: 302, headers: { Location: `${target.replace(/#.*$/, "")}#${fragment}`, "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
 }
 
 async function listRepos(request, env, token) {
