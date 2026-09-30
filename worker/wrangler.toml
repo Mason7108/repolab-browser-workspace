@@ -3,7 +3,7 @@ main = "src/index.js"
 compatibility_date = "2025-01-01"
 
 [vars]
-ALLOWED_ORIGINS = "http://localhost:5173"
+ALLOWED_ORIGINS = "https://mason7108.github.io"
 
 # Add these with `wrangler secret put NAME` (never commit their values):
 # ACCESS_PASSWORD_HASH
