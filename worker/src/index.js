@@ -47,7 +47,10 @@ async function oauthStart(request, env, session) {
   if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET) return json({ error: "GitHub OAuth is not configured." }, 503, request, env);
   const state = await seal({ session, nonce: crypto.randomUUID(), exp: Date.now() + 10 * 60_000 }, env.SESSION_SECRET);
   const callback = `${new URL(request.url).origin}/api/oauth/callback`;
-  const params = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: callback, scope: "repo read:user", state, allow_signup: "true" });
+  // A classic OAuth App has no read-only private-repository scope. Requesting
+  // `repo` would grant broader write-capable access, so RepoLab intentionally
+  // limits this version to public repositories plus read-only profile data.
+  const params = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: callback, scope: "read:user", state, allow_signup: "true" });
   return json({ url: `https://github.com/login/oauth/authorize?${params}` }, 200, request, env);
 }
 

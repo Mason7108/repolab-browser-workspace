@@ -8,7 +8,8 @@ if (password.length < 12) {
   console.error("Use at least 12 characters.");
   process.exit(1);
 }
-const iterations = 310_000;
+// Cloudflare Workers' Web Crypto PBKDF2 implementation caps this at 100,000.
+const iterations = 100_000;
 const salt = randomBytes(18);
 const hash = pbkdf2Sync(password, salt, iterations, 32, "sha256");
 const base64url = (value) => value.toString("base64url");
