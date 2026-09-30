@@ -45,7 +45,7 @@ async function login(request, env) {
 
 async function oauthStart(request, env, session) {
   if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET) return json({ error: "GitHub OAuth is not configured." }, 503, request, env);
-  const state = await seal({ session, nonce: crypto.randomUUID(), exp: Date.now() + 10 * 60_000 }, env.SESSION_SECRET);
+  const state = await seal({ access: session.access, nonce: crypto.randomUUID(), exp: Date.now() + 10 * 60_000 }, env.SESSION_SECRET);
   const callback = `${new URL(request.url).origin}/api/oauth/callback`;
   // A classic OAuth App has no read-only private-repository scope. Requesting
   // `repo` would grant broader write-capable access, so RepoLab intentionally
@@ -60,8 +60,7 @@ async function oauthCallback(request, env) {
   try {
     if (url.searchParams.get("error")) throw new Error("GitHub authorization was cancelled.");
     const state = await unseal(url.searchParams.get("state") || "", env.SESSION_SECRET);
-    const existing = await unseal(state?.session || "", env.SESSION_SECRET);
-    if (!state || !existing?.access || state.exp < Date.now()) throw new Error("The sign-in request expired. Please try again.");
+    if (!state?.access || state.exp < Date.now()) throw new Error("The sign-in request expired. Please try again.");
     const code = url.searchParams.get("code");
     if (!code) throw new Error("GitHub did not return an authorization code.");
     const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
