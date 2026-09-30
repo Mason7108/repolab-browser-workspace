@@ -1,0 +1,12 @@
+name = "repolab-api"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+ALLOWED_ORIGINS = "http://localhost:5173"
+
+# Add these with `wrangler secret put NAME` (never commit their values):
+# ACCESS_PASSWORD_HASH
+# SESSION_SECRET
+# GITHUB_CLIENT_ID
+# GITHUB_CLIENT_SECRET
