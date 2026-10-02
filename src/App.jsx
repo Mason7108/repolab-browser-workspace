@@ -84,19 +84,19 @@ export default function App() {
 
   function selectFolder(nextFolder) {
     setFolder(nextFolder);
-    setSelected(new Set(tree.filter((item) => !nextFolder || item.path.startsWith(`${nextFolder}/`)).map((item) => item.sha)));
+    setSelected(new Set(tree.filter((item) => !nextFolder || item.path.startsWith(`${nextFolder}/`)).map((item) => item.path)));
   }
 
-  function toggleFile(sha) {
+  function toggleFile(path) {
     setSelected((current) => {
       const next = new Set(current);
-      next.has(sha) ? next.delete(sha) : next.add(sha);
+      next.has(path) ? next.delete(path) : next.add(path);
       return next;
     });
   }
 
   async function launch() {
-    const chosen = tree.filter((item) => selected.has(item.sha));
+    const chosen = tree.filter((item) => selected.has(item.path));
     const total = chosen.reduce((sum, item) => sum + item.size, 0);
     if (!chosen.length) return setError("Choose at least one file.");
     if (total > MAX_DOWNLOAD_BYTES) return setError("Selection is larger than the 10 MB browser-workspace limit.");
@@ -106,7 +106,6 @@ export default function App() {
         body: JSON.stringify({ owner: repo.owner.login, repo: repo.name, files: chosen.map(({ path, sha, size }) => ({ path, sha, size })) }),
       });
       const prepared = prepareSandpackFiles(result.files, folder);
-      if (!prepared["/index.html"]) throw new Error("The selection needs an index.html at the selected folder root.");
       setFiles(prepared);
       setStage("workspace");
     });
@@ -148,11 +147,15 @@ function RepositoryPicker({ repos, onChoose, busy }) {
 
 function FilePicker({ repo, folders, folder, onFolder, files, selected, onToggle, onLaunch, busy, onBack }) {
   const total = files.filter((item) => selected.has(item.sha)).reduce((sum, item) => sum + item.size, 0);
-  return <div className="wide-card file-card"><div className="section-heading"><div><button className="back" onClick={onBack}>← Repositories</button><p className="eyebrow">Step 3 of 3</p><h1>{repo.name}</h1><p>Choose a folder, refine its files, then open the workspace.</p></div><button className="primary launch" disabled={busy || !selected.size} onClick={onLaunch}>{busy ? <LoaderCircle className="spin" /> : <Play size={17} />} Run {selected.size} files</button></div><div className="browser"><aside><h3>Folders</h3>{folders.map((item) => <button className={folder === item ? "active" : ""} key={item || "root"} onClick={() => onFolder(item)}><Folder size={16} />{item || "Repository root"}</button>)}</aside><div className="file-list"><div className="file-summary"><span>{selected.size} of {files.length} selected</span><span>{formatBytes(total)}</span></div>{files.map((item) => <label className="file-row" key={item.sha}><input type="checkbox" checked={selected.has(item.sha)} onChange={() => onToggle(item.sha)} /><span>{folder ? item.path.slice(folder.length + 1) : item.path}</span><small>{formatBytes(item.size)}</small></label>)}</div></div></div>;
+  return <div className="wide-card file-card"><div className="section-heading"><div><button className="back" onClick={onBack}>← Repositories</button><p className="eyebrow">Step 3 of 3</p><h1>{repo.name}</h1><p>Choose a folder, refine its files, then open the workspace.</p></div><button className="primary launch" disabled={busy || !selected.size} onClick={onLaunch}>{busy ? <LoaderCircle className="spin" /> : <Play size={17} />} Run {selected.size} files</button></div><div className="browser"><aside><h3>Folders</h3>{folders.map((item) => <button className={folder === item ? "active" : ""} key={item || "root"} onClick={() => onFolder(item)}><Folder size={16} />{item || "Repository root"}</button>)}</aside><div className="file-list"><div className="file-summary"><span>{selected.size} of {files.length} selected</span><span>{formatBytes(total)}</span></div>{files.map((item) => <label className="file-row" key={item.sha}><input type="checkbox" checked={selected.has(item.path)} onChange={() => onToggle(item.path)} /><span>{folder ? item.path.slice(folder.length + 1) : item.path}</span><small>{formatBytes(item.size)}</small></label>)}</div></div></div>;
 }
 
 function Workspace({ repo, files, onBack }) {
-  return <main className="workspace"><div className="workspace-bar"><div><button className="back" onClick={onBack}>← Files</button><strong>{repo.full_name}</strong></div><span className="live"><i /> Live preview</span></div><SandpackProvider template="static" files={files} theme="dark" options={{ activeFile: "/index.html", visibleFiles: Object.keys(files).slice(0, 12), recompileMode: "delayed", recompileDelay: 350 }}><SandpackLayout className="sandpack-main"><div className="explorer-pane"><SandpackFileExplorer /></div><SandpackCodeEditor showTabs showLineNumbers wrapContent /><div className="output-pane"><SandpackPreview showOpenInCodeSandbox={false} showRefreshButton /><SandpackConsole showHeader standalone /></div></SandpackLayout></SandpackProvider></main>;
+  const entries = Object.entries(files);
+  const activeFile = entries.find(([, file]) => file.active)?.[0] || "/index.html";
+  const visibleFiles = entries.filter(([, file]) => !file.hidden).map(([path]) => path).slice(0, 12);
+
+  return <main className="workspace"><div className="workspace-bar"><div><button className="back" onClick={onBack}>← Files</button><strong>{repo.full_name}</strong></div><span className="live"><i /> Live preview</span></div><SandpackProvider template="static" files={files} theme="dark" options={{ activeFile, visibleFiles, recompileMode: "delayed", recompileDelay: 350 }}><SandpackLayout className="sandpack-main"><div className="explorer-pane"><SandpackFileExplorer /></div><SandpackCodeEditor showTabs showLineNumbers wrapContent /><div className="output-pane"><SandpackPreview showOpenInCodeSandbox={false} showRefreshButton /><SandpackConsole showHeader standalone /></div></SandpackLayout></SandpackProvider></main>;
 }
 
 function Empty({ icon, text }) { return <div className="empty">{icon}<p>{text}</p></div>; }
