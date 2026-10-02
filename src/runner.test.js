@@ -14,4 +14,19 @@ describe("runner file preparation", () => {
     ], "game");
     expect(files["/index.html"].code).toContain("data:image/png;base64,iVBORw0KGgo=");
   });
+
+  it("opens selected files even when index.html is missing", () => {
+    const files = prepareSandpackFiles([
+      { path: "notes/readme.md", content: btoa("# Project notes") },
+    ], "notes");
+
+    expect(files["/readme.md"]).toMatchObject({
+      code: "# Project notes",
+      active: true,
+    });
+    expect(files["/index.html"]).toMatchObject({
+      hidden: true,
+    });
+    expect(files["/index.html"].code).toContain("does not contain an");
+  });
 });
