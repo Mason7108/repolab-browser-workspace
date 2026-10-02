@@ -16,7 +16,7 @@ The browser can always inspect an opaque session token and the repository files 
 
 ## What it runs
 
-This release targets static browser projects with an `index.html` at the selected folder root, plus CSS, JavaScript, JSON, images, fonts, audio, and video. Binary asset references are converted to in-memory data URLs. Selection is capped at 200 files and 10 MB.
+This release can open any selection of text files for browsing and editing. Static browser projects with an `index.html` at the selected folder root also get a live webpage preview. When `index.html` is absent, RepoLab supplies a hidden informational preview page instead of blocking the workspace. CSS, JavaScript, JSON, images, fonts, audio, and video are supported, and binary asset references are converted to in-memory data URLs. Selection is capped at 200 files and 10 MB.
 
 Reading private repositories without granting the broad classic OAuth `repo` scope requires converting the integration to a GitHub App with **Contents: read-only** permission. RepoLab intentionally does not request the broader OAuth scope.
 
