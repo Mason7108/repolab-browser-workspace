@@ -4,6 +4,27 @@ const MIME = {
   ttf: "font/ttf", otf: "font/otf", mp3: "audio/mpeg", wav: "audio/wav", mp4: "video/mp4",
 };
 
+const FALLBACK_HTML = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RepoLab workspace</title>
+    <style>
+      body { margin: 0; font: 16px/1.5 system-ui, sans-serif; color: #e5e7eb; background: #111827; }
+      main { max-width: 42rem; margin: 12vh auto; padding: 2rem; }
+      h1 { margin-bottom: .5rem; }
+      code { color: #93c5fd; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Workspace ready</h1>
+      <p>This selection does not contain an <code>index.html</code> file. You can still browse and edit the selected files. Add an <code>index.html</code> file whenever you want a webpage preview.</p>
+    </main>
+  </body>
+</html>`;
+
 export const isBinaryPath = (path) => Object.hasOwn(MIME, path.split(".").pop().toLowerCase());
 
 export function relativeToRoot(path, root) {
@@ -25,13 +46,24 @@ export function prepareSandpackFiles(downloaded, root = "") {
     }
   }
 
+  const hasIndex = textFiles.some((file) => file.virtualPath === "/index.html");
+  const initialFile = hasIndex ? "/index.html" : textFiles[0]?.virtualPath;
   const files = {};
+
   for (const file of textFiles) {
     files[file.virtualPath] = {
       code: rewriteAssetReferences(file.text, file.virtualPath, assets),
-      active: file.virtualPath === "/index.html",
+      active: file.virtualPath === initialFile,
     };
   }
+
+  if (!hasIndex) {
+    files["/index.html"] = {
+      code: FALLBACK_HTML,
+      hidden: true,
+    };
+  }
+
   return files;
 }
 
