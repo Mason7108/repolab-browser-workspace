@@ -127,7 +127,7 @@ function Shell({ children, user, onLogout, error }) {
   return <main className="app-shell">
     <header><div className="brand"><span><Code2 size={20} /></span> RepoLab</div>{user && <div className="user"><img src={user.avatar_url} alt="" /><span>{user.login}</span><button className="icon-button" onClick={onLogout} title="Sign out"><LogOut size={18} /></button></div>}</header>
     <section className="center-stage">{children}{error && <div className="error" role="alert">{error}</div>}</section>
-    <footer><ShieldCheck size={15} /> Secrets stay on the server. Repository code runs in an isolated preview.</footer>
+    <footer><ShieldCheck size={15} /> Secrets stay on the server. Repository code runs in an isolated preview. Copyright © 2026 by Mason7108 Apps. All Rights Reserved. This application is only to be accessed by authorized users from Mason7108 Apps. Any unathorized duplication, distribution, or exhibiton of this application are not allowed.</footer>
   </main>;
 }
 
